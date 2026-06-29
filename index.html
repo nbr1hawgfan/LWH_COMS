@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="theme-color" content="#8B0000">
-<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="LWH Comms">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -233,17 +233,17 @@ img{display:block;max-width:100%;}
 .qr-btn:active{background:var(--accent);color:#fff;border-color:var(--accent);}
 
 /* Chat input area */
-.chat-input-area{background:var(--bg1);border-top:1px solid var(--border);padding:8px 12px;flex-shrink:0;}
+.chat-input-area{background:var(--bg1);border-top:2px solid var(--accent);padding:10px 12px 12px;flex-shrink:0;box-shadow:0 -2px 12px rgba(0,0,0,.25);}
 .attachment-preview-bar{display:flex;align-items:center;gap:8px;background:var(--bg2);border-radius:8px;padding:8px 12px;margin-bottom:8px;font-size:13px;color:var(--text1);}
 .attach-remove{margin-left:auto;color:#ff6b6b;font-size:16px;}
 .input-row{display:flex;align-items:flex-end;gap:8px;}
 .input-actions{display:flex;gap:6px;flex-shrink:0;}
-.input-action-btn{width:36px;height:36px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:18px;background:var(--bg2);color:var(--text0);flex-shrink:0;transition:background .1s;}
+.input-action-btn{width:38px;height:38px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:18px;background:var(--bg2);border:1px solid var(--border);color:var(--text0);flex-shrink:0;transition:background .1s;}
 .input-action-btn:active{background:var(--bg3);}
 .input-action-btn.camera{background:var(--accent);color:#fff;}
 .input-action-btn.camera:active{background:var(--accent2);}
 .input-wrap{flex:1;position:relative;}
-.chat-input{width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:18px;padding:9px 14px;color:var(--text0);font-size:15px;resize:none;max-height:96px;line-height:1.4;transition:border-color .2s;}
+.chat-input{width:100%;background:var(--bg1);border:1.5px solid var(--border);border-radius:18px;padding:9px 14px;color:var(--text0);font-size:15px;resize:none;max-height:96px;line-height:1.4;transition:border-color .2s;box-shadow:inset 0 1px 3px rgba(0,0,0,.2);}
 .chat-input:focus{outline:none;border-color:var(--accent);}
 .char-count{position:absolute;bottom:-16px;right:6px;font-size:10px;color:var(--text2);}
 .char-count.warn{color:#e6a817;}
@@ -704,7 +704,7 @@ function api(action, payload) {
       cleanup();
       console.error('api timeout [' + action + ']');
       resolve({ success: false, error: 'Request timed out' });
-    }, 15000);
+    }, 30000);
 
     function cleanup() {
       clearTimeout(timer);
@@ -1083,6 +1083,13 @@ function openChat(peer) {
   document.getElementById('chatInput').value = '';
   resizeChatInput();
   document.getElementById('chatView').classList.add('open');
+  api('markRead', {user: S.user, otherId: peer.id});
+  loadConversation();
+  setTimeout(function() { document.getElementById('chatInput').focus(); }, 200);
+}
+
+function loadConversation() {
+  if (!S.currentPeer) return;
   api('getConversation', {user: S.user, otherId: S.currentPeer.id}).then(renderChat);
 }
 
