@@ -697,17 +697,16 @@ img{display:block;max-width:100%;}
 var GAS_URL = 'https://script.google.com/macros/s/AKfycbx_Mgjcc1eqYCkvOQ-LVOp5LjnUbf-M7on779C40bTyLFIQNrLBDZPOLR20mRdJUwXP/exec';
 
 function api(action, payload) {
-  var url = GAS_URL + '?action=' + encodeURIComponent(action);
-  return fetch(url, {
-    method: 'POST',
-    headers: {'Content-Type': 'application/json'},
-    body: JSON.stringify(payload || {})
-  })
-  .then(function(r) { return r.json(); })
-  .catch(function(err) {
-    console.error('api error [' + action + ']:', err);
-    return { success: false, error: err.toString() };
-  });
+  // Use GET + encoded payload to avoid CORS preflight
+  var url = GAS_URL
+    + '?action=' + encodeURIComponent(action)
+    + '&payload=' + encodeURIComponent(JSON.stringify(payload || {}));
+  return fetch(url, { method: 'GET', redirect: 'follow' })
+    .then(function(r) { return r.json(); })
+    .catch(function(err) {
+      console.error('api error [' + action + ']:', err);
+      return { success: false, error: err.toString() };
+    });
 }
 
 // ============================================================
