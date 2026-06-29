@@ -1093,6 +1093,16 @@ function loadConversation() {
   api('getConversation', {user: S.user, otherId: S.currentPeer.id}).then(renderChat);
 }
 
+function closeChat() {
+  document.getElementById('chatView').classList.remove('open');
+  document.getElementById('chatMsgs').innerHTML = '';
+  document.getElementById('chatInput').value = '';
+  document.getElementById('attachBar').style.display = 'none';
+  S.pendingAttach = null;
+  S.currentPeer = null;
+  loadInbox();
+}
+
 function renderChat(msgs) {
   var container = document.getElementById('chatMsgs');
   if (!msgs || msgs.length === 0) {
