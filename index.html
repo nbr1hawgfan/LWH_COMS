@@ -697,16 +697,38 @@ img{display:block;max-width:100%;}
 var GAS_URL = 'https://script.google.com/macros/s/AKfycbx_Mgjcc1eqYCkvOQ-LVOp5LjnUbf-M7on779C40bTyLFIQNrLBDZPOLR20mRdJUwXP/exec';
 
 function api(action, payload) {
-  // Use GET + encoded payload to avoid CORS preflight
-  var url = GAS_URL
-    + '?action=' + encodeURIComponent(action)
-    + '&payload=' + encodeURIComponent(JSON.stringify(payload || {}));
-  return fetch(url, { method: 'GET', redirect: 'follow' })
-    .then(function(r) { return r.json(); })
-    .catch(function(err) {
-      console.error('api error [' + action + ']:', err);
-      return { success: false, error: err.toString() };
-    });
+  return new Promise(function(resolve) {
+    var cbName = '_cb_' + action.replace(/[^a-z]/gi,'_') + '_' + Date.now();
+    var script = document.createElement('script');
+    var timer = setTimeout(function() {
+      cleanup();
+      console.error('api timeout [' + action + ']');
+      resolve({ success: false, error: 'Request timed out' });
+    }, 15000);
+
+    function cleanup() {
+      clearTimeout(timer);
+      delete window[cbName];
+      if (script.parentNode) script.parentNode.removeChild(script);
+    }
+
+    window[cbName] = function(data) {
+      cleanup();
+      resolve(data);
+    };
+
+    script.src = GAS_URL
+      + '?action='   + encodeURIComponent(action)
+      + '&payload='  + encodeURIComponent(JSON.stringify(payload || {}))
+      + '&callback=' + cbName
+      + '&cb='       + Date.now();
+    script.onerror = function() {
+      cleanup();
+      console.error('api script error [' + action + ']');
+      resolve({ success: false, error: 'Script load failed' });
+    };
+    document.head.appendChild(script);
+  });
 }
 
 // ============================================================
